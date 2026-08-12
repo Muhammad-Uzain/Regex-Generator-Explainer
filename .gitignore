@@ -1,0 +1,13 @@
+# Secret - the real API key
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# OS / editor files
+.DS_Store
+.vscode/
+.idea/
