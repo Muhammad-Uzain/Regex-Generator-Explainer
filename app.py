@@ -8,8 +8,8 @@ import streamlit as st
 # The engine. While building the UI, comment the first line and use the
 # second so you do not need an API key.
 
-#import regex_logic as logic
-import mock_logic as logic
+import regex_logic as logic
+#import mock_logic as logic
 
 
 # ---- Page setup ------------------------------------------------------
