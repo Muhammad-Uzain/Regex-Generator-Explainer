@@ -139,14 +139,29 @@ if "result" not in st.session_state:
     st.session_state.result = None
 if "desc" not in st.session_state:
     st.session_state.desc = ""
+if "tests" not in st.session_state:
+    st.session_state.tests = ""
  
-# Quick-start presets: clicking one fills the description box.
+# Quick-start presets: label -> (description, simple sample test strings).
+# Each sample has one string that should match and one that should not.
 PRESETS = {
-    "Email": "an email address",
-    "Date": "a date in DD/MM/YYYY format",
-    "Postal": "a Canadian postal code",
-    "Phone": "a phone number like 123-456-7890",
+    "Email":  ("an email address",                "john@example.com\nnot-an-email"),
+    "Date":   ("a date in DD/MM/YYYY format",      "31/12/2025\n2025-12-31"),
+    "Postal": ("a Canadian postal code",           "K1A 0B1\n12345"),
+    "Phone":  ("a phone number like 123-456-7890", "123-456-7890\n1234567890"),
 }
+ 
+ 
+# ---------- callbacks (run before the widgets are drawn) ----------
+def apply_preset(desc_value, tests_value):
+    st.session_state.desc = desc_value      # fill the description
+    st.session_state.tests = tests_value    # fill the sample test strings
+    st.session_state.result = None          # clear any old result
+ 
+def clear_inputs():
+    st.session_state.desc = ""
+    st.session_state.tests = ""
+    st.session_state.result = None
  
  
 # ================= two columns: inputs (left) | results (right) =================
@@ -156,15 +171,15 @@ col_input, col_output = st.columns([1, 1.2], gap="large")
 with col_input:
     with st.container(border=True):
         section_header("01", "Describe & test",
-                       "Describe the pattern and add your test strings.")
+                       "Pick a preset to auto-fill an example, or write your own.")
  
         st.caption("Quick start")
         preset_items = list(PRESETS.items())
         for i in range(0, len(preset_items), 2):        # 2 buttons per row
             c1, c2 = st.columns(2)
-            for (label, value), col in zip(preset_items[i:i + 2], [c1, c2]):
-                if col.button(label, use_container_width=True):
-                    st.session_state.desc = value
+            for (label, (dval, tval)), col in zip(preset_items[i:i + 2], [c1, c2]):
+                col.button(label, use_container_width=True,
+                           on_click=apply_preset, args=(dval, tval))
  
         description = st.text_input(
             "What should the regex match?",
@@ -173,6 +188,7 @@ with col_input:
         )
         test_input = st.text_area(
             "Test strings - one per line",
+            key="tests",
             placeholder="john@example.com\nnot-an-email\nhello@world.co",
             height=150,
         )
@@ -188,9 +204,13 @@ with col_input:
         with opt_right:
             ignore_case = st.toggle("Ignore case", value=False)
  
-        generate_clicked = st.button(
-            "Generate Regex", type="primary", use_container_width=True
-        )
+        gen_col, clr_col = st.columns([3, 1])
+        with gen_col:
+            generate_clicked = st.button(
+                "Generate Regex", type="primary", use_container_width=True
+            )
+        with clr_col:
+            st.button("Clear", use_container_width=True, on_click=clear_inputs)
  
         if generate_clicked:
             if not description.strip():
