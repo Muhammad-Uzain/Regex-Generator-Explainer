@@ -14,8 +14,7 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 # The model to use. Gemini Flash models are on the free tier. If this
 # name ever stops working, open Google AI Studio (aistudio.google.com),
 # check the current list of free models, and change this ONE line.
-#MODEL_NAME = "gemini-flash-latest"
-MODEL_NAME = "gemini-2.0-flash"
+MODEL_NAME = "gemini-flash-latest"
 
 # Create the client once. If the key is missing we keep it as None and
 # report that clearly inside generate_regex (instead of crashing).
