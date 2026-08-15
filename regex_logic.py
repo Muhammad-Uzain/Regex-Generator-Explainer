@@ -23,7 +23,7 @@ client = genai.Client(api_key=API_KEY) if API_KEY else None
 
 def generate_regex(description):
     """Turn a plain-English description into a regex + explanation."""
-
+ 
     # Guard 1: was the API key actually loaded?
     if client is None:
         return {
@@ -32,7 +32,7 @@ def generate_regex(description):
             "explanation": None,
             "error": "API key not found. Add GEMINI_API_KEY to your .env file.",
         }
-
+ 
     # Build the prompt. We insist on JSON ONLY, in a fixed shape, so the
     # program can read the fields reliably.
     prompt = (
@@ -51,7 +51,7 @@ def generate_regex(description):
         "  ]\n"
         "}\n"
     )
-
+ 
     # Call the API and parse the reply, catching every kind of failure.
     try:
         response = client.models.generate_content(
@@ -59,19 +59,19 @@ def generate_regex(description):
             contents=prompt,
         )
         raw = response.text.strip()
-
+ 
         # Models sometimes wrap JSON in ```json ... ``` fences. Strip them.
         if raw.startswith("```"):
             raw = raw.strip("`")
             if raw.lstrip().lower().startswith("json"):
                 raw = raw.lstrip()[4:]
             raw = raw.strip()
-
+ 
         data = json.loads(raw)
-
+ 
         pattern = data.get("pattern")
         explanation = data.get("explanation", [])
-
+ 
         if not pattern:
             return {
                 "success": False,
@@ -79,14 +79,14 @@ def generate_regex(description):
                 "explanation": None,
                 "error": "The AI did not return a pattern. Try rephrasing.",
             }
-
+ 
         return {
             "success": True,
             "pattern": pattern,
             "explanation": explanation,
             "error": None,
         }
-
+ 
     except json.JSONDecodeError:
         return {
             "success": False,
@@ -101,23 +101,36 @@ def generate_regex(description):
             "explanation": None,
             "error": "Could not reach the AI service: " + str(error),
         }
-
-
-def test_regex(pattern, test_strings):
-    """Run pattern against each test string; report match / no match."""
-
+ 
+ 
+def test_regex(pattern, test_strings, ignore_case=False, whole_string=False):
+    """
+    Run `pattern` against each test string; report match / no match.
+ 
+    Optional arguments (both default to the original behaviour):
+      ignore_case=True   -> compile with re.IGNORECASE (upper/lower ignored)
+      whole_string=True  -> the ENTIRE string must match (re.fullmatch);
+                            otherwise the pattern may match ANYWHERE (re.search)
+    """
+    # Build the flags. re.IGNORECASE makes the match case-insensitive.
+    flags = re.IGNORECASE if ignore_case else 0
+ 
     # Compile once. If the pattern is broken, report it cleanly per row.
     try:
-        compiled = re.compile(pattern)
+        compiled = re.compile(pattern, flags)
     except re.error as error:
         return [
             {"text": s, "matches": False, "error": "Invalid pattern: " + str(error)}
             for s in test_strings
         ]
-
+ 
     results = []
     for s in test_strings:
-        # .search() looks for the pattern ANYWHERE inside the string.
-        matched = compiled.search(s) is not None
+        if whole_string:
+            # The whole string must match, start to end.
+            matched = compiled.fullmatch(s) is not None
+        else:
+            # The pattern may appear anywhere inside the string.
+            matched = compiled.search(s) is not None
         results.append({"text": s, "matches": matched})
     return results
