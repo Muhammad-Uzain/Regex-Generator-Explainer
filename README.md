@@ -11,6 +11,8 @@ Built with **Python**, **Streamlit**, and the **Google Gemini API**.
 > part-by-part explanation, and a live match/no-match check against your test
 > strings.
 
+**Live App:** https://regex4330.streamlit.app/
+
 ---
 
 ## Table of contents
