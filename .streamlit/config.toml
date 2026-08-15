@@ -1,0 +1,11 @@
+# .streamlit/config.toml
+# Gives the app a dark "developer" look. Safe to commit - it holds no secrets.
+# This file must live inside a folder named  .streamlit  in your project root.
+
+[theme]
+base = "dark"
+primaryColor = "#2dd4bf"
+backgroundColor = "#0d1117"
+secondaryBackgroundColor = "#161b22"
+textColor = "#e6edf3"
+font = "sans serif"
